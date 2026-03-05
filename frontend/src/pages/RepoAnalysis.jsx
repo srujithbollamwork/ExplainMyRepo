@@ -10,7 +10,7 @@ import {
     RefreshCw, Zap, Rocket, ShieldAlert, Cpu, Trash2
 } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://explainmyrepo-backend.onrender.com');
+const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://explainmyrepo.onrender.com');
 
 function RepoAnalysis() {
     const { id } = useParams();

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Search, Github, Layout, Clock, Activity, LogOut, Trash2, AlertCircle } from 'lucide-react';
 
-const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://explainmyrepo-backend.onrender.com');
+const API_URL = import.meta.env.VITE_API_URL || (window.location.hostname === 'localhost' ? 'http://localhost:8000' : 'https://explainmyrepo.onrender.com');
 
 function Dashboard() {
     const [repoUrl, setRepoUrl] = useState('');
