@@ -1,47 +1,51 @@
 import os
+import json
 import firebase_admin
 from firebase_admin import credentials, firestore
-import json
 
-# Local development path
-local_cred_path = os.path.join(os.path.dirname(__file__), "serviceAccountKey.json")
-# Render Secret File path
-render_cred_path = "/etc/secrets/serviceAccountKey.json"
+def initialize_firebase():
+    """Initialize Firebase Admin SDK for both local and production."""
+    if firebase_admin._apps:
+        return
 
-def get_parsed_credentials(path):
-    encodings = ['utf-8', 'utf-16', 'utf-16le', 'utf-8-sig']
-    for enc in encodings:
-        try:
-            with open(path, 'r', encoding=enc) as f:
-                return json.load(f)
-        except (UnicodeDecodeError, UnicodeError, json.JSONDecodeError):
-            continue
-    raise ValueError(f"Could not parse file {path} with any known encoding.")
-
-if not firebase_admin._apps:
     try:
-        if os.path.exists(render_cred_path):
-            cred_dict = get_parsed_credentials(render_cred_path)
+        # 1️⃣ Render secret file
+        render_path = "/etc/secrets/serviceAccountKey.json"
+
+        # 2️⃣ Local development file
+        local_path = os.path.join(os.path.dirname(__file__), "serviceAccountKey.json")
+
+        # 3️⃣ Environment variable
+        env_json = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+
+        if os.path.exists(render_path):
+            cred = credentials.Certificate(render_path)
+            firebase_admin.initialize_app(cred)
+            print("Firebase initialized using Render secret file")
+
+        elif os.path.exists(local_path):
+            cred = credentials.Certificate(local_path)
+            firebase_admin.initialize_app(cred)
+            print("Firebase initialized using local serviceAccountKey.json")
+
+        elif env_json:
+            cred_dict = json.loads(env_json)
             cred = credentials.Certificate(cred_dict)
             firebase_admin.initialize_app(cred)
-            print("Firebase Admin initialized via Render Secret File")
-        elif os.path.exists(local_cred_path):
-            cred_dict = get_parsed_credentials(local_cred_path)
-            cred = credentials.Certificate(cred_dict)
-            firebase_admin.initialize_app(cred)
-            print("Firebase Admin initialized via local serviceAccountKey.json")
-        elif os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON"):
-            cred_dict = json.loads(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON"))
-            cred = credentials.Certificate(cred_dict)
-            firebase_admin.initialize_app(cred)
-            print("Firebase Admin initialized via GOOGLE_APPLICATION_CREDENTIALS_JSON")
+            print("Firebase initialized using environment variable")
+
         else:
-            print("WARNING: No Firebase credentials found. Firestore writes will fail.")
+            print("WARNING: No Firebase credentials found")
             firebase_admin.initialize_app()
+
     except Exception as e:
-        print("Error initializing Firebase Admin:", e)
+        print("Firebase initialization error:", e)
+
+# Initialize Firebase once
+initialize_firebase()
 
 def get_firestore_db():
+    """Return Firestore client instance"""
     try:
         return firestore.client()
     except Exception as e:
